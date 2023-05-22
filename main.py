@@ -1,38 +1,52 @@
-import os
-from PIL import Image
-import torch
-from fastapi import FastAPI, Form, File, UploadFile
-
-# from config import config
-# from resnet import resnet18, resnet34, resnet50, resnet101, resnet152, model_setup
-# from preprocess import imgToTensor
+from fastapi import FastAPI, File
+from fastapi.responses import FileResponse
 from pipeline import pipe
+from preprocess import imgToTensor
+import requests
+import io
+import base64
+from threading import Thread
+import json
+import time
 
 
-# model = model_setup()
-# prediction_classes = config.prediction_classes
 app = FastAPI()
+
+
+def call_high_res_api(json_obj):
+    dictToSend = json_obj
+
+    requests.post("http://0.0.0.0:8001/generate",json=dictToSend, headers = {'content-type': 'application/json'})
+
+    return "Done!"
+
 
 @app.get("/")
 async def root():
     return {"message": "Hello World!"}
 
-@app.get("/predict")
-async def predict():
-    
-    prompt = "a Dali-esque painting of an astronaut riding a unicorn"
-    image = pipe(prompt).images[0]   
+@app.post("/generate")
+async def predict(prompt: str):
+    # image = pipe(prompt).images[0]
+
+    # print(type(init_image))
+
+    # image = pipe(prompt=prompt, image=init_image, strength=0.75, guidance_scale=7.5).images[0]
+    image = pipe(prompt).images[0] 
     image.save("low_res.png")
-    # tensor = imgToTensor(image)
 
-    # model.eval()
-    # with torch.inference_mode():
-    #     output = model(tensor)
+    rawBytes = io.BytesIO()
+    image.save(rawBytes, "png")
+    rawBytes.seek(0)
+    img_base64 = base64.b64encode(rawBytes.read())
+    
+    json_object = json.dumps({'init_image':str(img_base64), 'prompt':str(prompt)})
+    Thread(target = call_high_res_api, args=(json_object,)).start()
+    time.sleep(3)
+    
+    # return jsonify({'userID': userID, 'generated_img':str(img_base64)})
 
-    # _, predicted = torch.max(output.data, 1)
-    # prediction = prediction_classes[predicted]
+    return FileResponse('low_res.png', media_type="image/jpeg")
 
-    return "Image generated"
-    # return {"prediction": prediction}
 
-    # ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "80"]
+    # images = pipe(prompt=prompt, image=init_image, strength=0.75, guidance_scale=7.5).images
