@@ -1,1 +1,1 @@
-url = 'http://0.0.0.0:8001/generate'
+url = 'https://d16460934d98445ddb164b20bd1852806.clg07azjl.paperspacegradient.com/generate'

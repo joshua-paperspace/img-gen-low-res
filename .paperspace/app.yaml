@@ -1,0 +1,24 @@
+apiVersion: latest
+enabled: true
+name: gc-demo/low-res-img
+image: joshuapaperspace/low-res-img:latest
+port: 80
+healthChecks:
+  readiness:
+    path: /
+resources:
+  replicas: 1
+  instanceType: P6000
+  autoscaling:
+    enabled: true
+    maxReplicas: 2
+    metrics:
+      - metric: requestDuration
+        summary: average
+        value: 10
+      - metric: cpu
+        summary: average
+        value: 80
+      - metric: memory
+        summary: average
+        value: 80
