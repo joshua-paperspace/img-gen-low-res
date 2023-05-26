@@ -24,8 +24,7 @@ async def root():
 
 @app.post("/generate")
 async def predict(prompt: str):
-    image = pipe(prompt).images[0] 
-    print(f"Image size: {image.size}")
+    image = pipe(prompt).images[0]
     image.save("low_res.png")
 
     rawBytes = io.BytesIO()

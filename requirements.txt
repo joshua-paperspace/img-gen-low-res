@@ -3,3 +3,4 @@ torch==2.0.1
 torchvision==0.15.2
 Pillow==9.5.0
 diffusers==0.16.1
+opencv-python==4.7.0.72
